@@ -2,4 +2,5 @@ zig-cache
 zig-out
 deps.zig
 gyro.lock
+examples
 .build_config

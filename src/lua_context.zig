@@ -19,6 +19,46 @@ pub const LuaArgument = union(enum) {
     Float: f64,
 };
 
+const LuaApi = struct {
+    const Self = @This();
+    var game_state: ?*Engine.GameState = null;
+
+    pub fn init_lua_api(lua: *Engine.ziglua.Lua) void {
+        push_function(lua, "is_key_pressed", is_key_pressed);
+        push_function(lua, "is_key_just_pressed", is_key_just_pressed);
+    }
+
+    fn push_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
+        lua.pushFunction(Engine.ziglua.wrap(func));
+        lua.setGlobal(name);
+    }
+
+    fn is_key_just_pressed(lua: *Engine.ziglua.Lua) i32 {
+        var res = false;
+        if (game_state) |gs| {
+            if (lua.isInteger(1)) {
+                const sc = lua.toInteger(1) catch 0;
+                res = gs.input.is_just_pressed(@enumFromInt(sc));
+            }
+        }
+        lua.pushBoolean(res);
+        return 1;
+    }
+
+    fn is_key_pressed(lua: *Engine.ziglua.Lua) i32 {
+        var res = false;
+        if (game_state) |gs| {
+            if (lua.isInteger(1)) {
+                const sc = lua.toInteger(1) catch 0;
+                res = gs.input.is_pressed(@enumFromInt(sc));
+            }
+        }
+        lua.pushBoolean(res);
+        return 1;
+    }
+
+};
+
 pub const LuaScript = struct {
     const Self = @This();
 
@@ -53,13 +93,18 @@ pub const LuaManager = struct {
     pub fn init(allocator: std.mem.Allocator) !Self {
         var lua = try Engine.ziglua.Lua.init(allocator);
         lua.openLibs();
-
+        
         lua.createTable(0, 1);
         lua.setGlobal(MODULES_TABLE_NAME);
 
         return Self {
             .lua = lua,
         };
+    }
+
+    pub fn load_lua_api(self: *Self, game_state: *Engine.GameState) !void {
+        LuaApi.game_state = game_state;
+        LuaApi.init_lua_api(&self.lua);
     }
 
     pub fn deinit(self: *Self) void {
@@ -71,15 +116,20 @@ pub const LuaManager = struct {
     ) !LuaScript {
         self.get_modules_table();
         self.lua.loadFile(Engine.Utils.str_to_cstr(file_path), .text) catch {
-            Engine.IO.print_err("GS[ERROR]: Failed to load lua script {s}\nLua: {s}", .{
+            Engine.IO.print_err("GS[ERROR]: Failed to load lua file {s}\nLua: {s}", .{
                 file_path,
                 try self.lua.toString(-1)
             });
             return error.Runtime;
         };
-        self.lua.call(0, 1);
+        self.lua.protectedCall(0, 1, 0) catch {
+            Engine.IO.print_err("GS[ERROR]: Failed to load lua module {s}\nLua: {s}", .{
+                file_path,
+                try self.lua.toString(-1)
+            });
+            return error.File;
+        };
         self.lua.setField(-2, Engine.Utils.str_to_cstr(module_name));
-        self.lua.setTop(0);
         return LuaScript {
             .file_path = try Engine.zigstr.fromConstBytes(allocator, file_path),
             .module_name = try Engine.zigstr.fromConstBytes(allocator, module_name),
@@ -169,10 +219,10 @@ pub const LuaManager = struct {
                     break :ret "";
                 }
             });
-            @panic("LM[PANIC]: Modules table was not found");
+            std.debug.panic("LM[PANIC]: Modules table was not found", .{});
         };
         if (o_type != .table) {
-            @panic("LM[PANIC]: Modules table was not found");
+            std.debug.panic("LM[PANIC]: Modules table was not found", .{});
         }
     }
 };

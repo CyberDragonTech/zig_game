@@ -15,7 +15,8 @@ pub fn init(sprite: Engine.Gfx.Sprite, position: Engine.sdl.Point) Self {
 
 pub fn update(self: *Self, game_state: *Engine.GameState) !void {
     _ = self;
-    game_state.gfx.camera_offset.x += 1;
+    _ = game_state;
+    // game_state.gfx.camera_offset.x += 1;
 
 }
 

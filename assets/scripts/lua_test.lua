@@ -1,22 +1,11 @@
-mod = {}
+Mod = {}
+local scancodes = require "assets/scripts/scancodes"
 
-
-function mod.test()
-    print("Hello, Zig, form Lua")
-    return "Hello, Zig, form Lua"
-end
-
-
-function mod.io_test(a)
-    if type(a) ~= "number" then
-        return -1
-    end
-    if a < 10 then
-        return 0
-    else
-        return 1
+function Mod.update()
+    if is_key_just_pressed(scancodes.SDL_SCANCODE_SPACE) then
+        print("Hello, Zig, form Lua")
     end
 end
 
 
-return mod
+return Mod

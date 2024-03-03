@@ -1,10 +1,10 @@
 
-mod = {}
+Mod = {}
 
 
-function mod.test2()
+function Mod.test2()
     print("Seond Lua file")
 end
 
 
-return mod
+return Mod
