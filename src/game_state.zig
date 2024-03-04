@@ -13,7 +13,9 @@ const Self = @This();
 window: Engine.sdl.Window,
 gfx: Engine.Gfx,
 input: Engine.Input,
+assets_manager: Engine.AssetsManager,
 lua_manager: Engine.LuaContext.LuaManager,
+
 
 
 pub fn run(self: *Self) !void {
@@ -31,11 +33,13 @@ pub fn run(self: *Self) !void {
     defer script1.deinit();
     try Engine.IO.println("GS[INFO]: __script_1__ is loaded", .{});
 
-    const spr_test_res = self.gfx.loadBMP("assets/textures/spr_test.bmp");
-    if (spr_test_res == null) {
-        Engine.IO.print_err("Failed to load player texture", .{});
-        return error.Runtime;
-    }
+    try self.assets_manager.load_texture(
+        &self.gfx, 
+        Engine.allocator, 
+        "spr_test.bmp", 
+        "spr_test"
+    );
+    const spr_test_res = self.assets_manager.get_texture("spr_test");
     const spr_test: Engine.sdl.Texture = spr_test_res.?;
     const t_info = try spr_test.query();
 
@@ -63,7 +67,11 @@ pub fn run(self: *Self) !void {
             }
         }
 
-        try script1.call_function("update", 0, &[_]Engine.LuaContext.LuaArgument{});
+        try script1.call_function(
+            "update", 
+            0, 
+            &[_]Engine.LuaContext.LuaArgument{}
+        );
         self.lua_manager.clear_stack();
         
         try player.update(self);
@@ -75,13 +83,13 @@ pub fn run(self: *Self) !void {
 
         try self.gfx.end_frame();
         try self.gfx.present();
-        // std.time.sleep(ns_per_ms * 500);
     }
     try Engine.IO.println("Finishing...", .{});
 }
 
 pub fn deinit(self: *Self) void {
     self.lua_manager.deinit();
+    self.assets_manager.deinit();
     self.input.deinit();
     self.gfx.deinit();
     self.window.destroy();
@@ -121,6 +129,7 @@ pub fn init() !Self {
         .window = window,
         .gfx = _gfx,
         .input = try Engine.Input.init(Engine.allocator),
+        .assets_manager = Engine.AssetsManager.init(Engine.allocator),
         .lua_manager = lua,
     };
 }

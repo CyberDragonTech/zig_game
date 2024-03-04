@@ -8,6 +8,7 @@ pub const IO = @import("io.zig");
 pub const GameState = @import("game_state.zig");
 pub const Input = @import("input.zig");
 pub const Gfx = @import("gfx.zig");
+pub const AssetsManager = @import("assets_manager.zig");
 pub const LuaContext = @import("lua_context.zig");
 
 
