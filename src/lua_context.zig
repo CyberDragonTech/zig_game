@@ -28,6 +28,7 @@ const LuaApi = struct {
         push_function(lua, "is_key_just_pressed", is_key_just_pressed);
         push_function(lua, "get_texture", get_texture);
         push_function(lua, "gfx_draw_sprite", gfx_draw_sprite);
+        push_function(lua, "load_texture", load_texture);
     }
 
     fn push_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
@@ -130,6 +131,35 @@ const LuaApi = struct {
                 const sc = lua.toInteger(1) catch 0;
                 res = gs.input.is_pressed(@enumFromInt(sc));
             }
+        }
+        lua.pushBoolean(res);
+        return 1;
+    }
+
+    fn load_texture(lua: *Engine.ziglua.Lua) i32 {
+        var res = false;
+        if (game_state) |gs| ret: {
+            const file_str = lua.toBytes(1) catch {
+                break :ret ;
+            };
+            const id_str = lua.toBytes(2) catch {
+                break :ret ;
+            };
+            const id_key = Engine.Utils.make_str_heap_copy(
+                Engine.allocator, 
+                id_str
+            ) catch {
+                break :ret ;
+            };
+            gs.assets_manager.load_texture(
+                Engine.allocator, 
+                &gs.gfx, 
+                file_str, 
+                id_key
+            ) catch {
+                break :ret ;
+            };
+            res = true;
         }
         lua.pushBoolean(res);
         return 1;

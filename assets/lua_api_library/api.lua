@@ -1,6 +1,10 @@
 ---@meta
 
 
+---Global list of all loaded scripts in engine
+__modules__ = {}
+
+
 ---@class Rect
 ---@field x number
 ---@field y number
@@ -36,6 +40,10 @@ function get_texture(texture_id) end
 ---@return boolean
 function gfx_draw_sprite(sprite) end
 
-
----Global list of all loaded scripts in engine
-__modules__ = {}
+---Load BMP image and set strign id to it
+---
+---Return false when fails
+---@param file string file path relative to assets/textures/
+---@param texture_id string
+---@return boolean
+function load_texture(file, texture_id) end

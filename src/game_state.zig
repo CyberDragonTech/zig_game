@@ -22,48 +22,40 @@ pub fn run(self: *Self) !void {
     try self.lua_manager.load_lua_api(self);
     try Engine.IO.println("GS[INFO]: Lua API loaded", .{});
 
-    try self.assets_manager.load_texture(
+    var texture_loader = self.lua_manager.load_script(
         Engine.allocator, 
-        &self.gfx, 
-        "spr_test.bmp", 
-        "spr_test"
-    );
-
-    var script1 = self.lua_manager.load_script(
-        Engine.allocator, 
-        "assets/scripts/lua_test.lua", 
-        "__script_1__"
+        "assets/scripts/texture_loader.lua", 
+        "__texture_loader__"
     ) catch {
-        Engine.IO.print_err("Failed to load __script_1__", .{});
+        Engine.IO.print_err("Failed to load TextureLoader script", .{});
         return error.Fail;
     };
-    defer script1.deinit();
-    try Engine.IO.println("GS[INFO]: __script_1__ is loaded", .{});
+    defer texture_loader.deinit();
+    try Engine.IO.println("GS[INFO]: TextureLoader script is loaded", .{});
 
-    try script1.call_function(
+    try texture_loader.call_function(
+        "load", 
+        0, 
+        &[_]Engine.LuaContext.LuaArgument{}
+    );
+
+    var player = self.lua_manager.load_script(
+        Engine.allocator, 
+        "assets/scripts/player.lua", 
+        "__player__"
+    ) catch {
+        Engine.IO.print_err("Failed to load Player script", .{});
+        return error.Fail;
+    };
+    defer player.deinit();
+    try Engine.IO.println("GS[INFO]: Player script is loaded", .{});
+
+    try player.call_function(
         "start", 
         0, 
         &[_]Engine.LuaContext.LuaArgument{}
     );
     self.lua_manager.clear_stack();
-
-
-    const spr_test_res = self.assets_manager.get_texture("spr_test");
-    const spr_test: Engine.sdl.Texture = spr_test_res.?;
-    const t_info = try spr_test.query();
-
-    const sprite = Engine.Gfx.Sprite.new(spr_test, .{
-        .x = 0,
-        .y = 0,
-        .width = @intCast(t_info.width),
-        .height = @intCast(t_info.height),
-    }, .{
-        .x = 16,
-        .y = 32,
-        .width = @intCast(t_info.width),
-        .height = @intCast(t_info.height),
-    });
-    var player = Player.init(sprite, Engine.sdl.Point{.x = 10, .y = 1});
 
     mainLoop: while (true) {
         self.input.update();
@@ -76,21 +68,17 @@ pub fn run(self: *Self) !void {
             }
         }
 
-        try script1.call_function(
+        try player.call_function(
             "update", 
             0, 
             &[_]Engine.LuaContext.LuaArgument{}
         );
         self.lua_manager.clear_stack();
-        
-        try player.update(self);
 
         try self.gfx.clear_screen();
         try self.gfx.start_frame();
 
-        try player.draw(self);
-
-        try script1.call_function(
+        try player.call_function(
             "draw", 
             0, 
             &[_]Engine.LuaContext.LuaArgument{}

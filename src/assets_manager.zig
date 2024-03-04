@@ -22,16 +22,26 @@ pub fn init(allocator: std.mem.Allocator) Self {
 pub fn deinit(self: *Self) void {
     var iter = self.textures.iterator();
     while (iter.next()) |entry| {
-        entry.value_ptr.*.destroy();
+        entry.value_ptr.destroy();
+        self.textures.allocator.free(entry.key_ptr.*);
     }
     self.textures.deinit();
     Engine.IO.print_err("AS[INFO]: deinitialized", .{});
 }
 
+pub fn dump(self: *Self) void {
+    Engine.IO.print_err("AS[INFO]: Entires:", .{});
+    var iter = self.textures.iterator();
+    while (iter.next()) |entry| {
+        Engine.IO.print_err("AS[INFO]: \"{s}\" | {}", .{entry.key_ptr.*, entry.value_ptr});
+    }
+}
+
 pub fn load_texture(
     self: *Self, 
     allocator: std.mem.Allocator, 
-    gfx: *Engine.Gfx, file: []const u8, 
+    gfx: *Engine.Gfx, 
+    file: []const u8, 
     id: []const u8
 ) !void {
     var str_path = try Engine.zigstr.fromConstBytes(allocator, "");
@@ -46,10 +56,9 @@ pub fn load_texture(
         self.textures.put(id, tex) catch {
             return error.Memory; 
         };
-        try Engine.IO.println("AS[INFO]: texture {s} was loaded", .{file});
+        try Engine.IO.println("AS[INFO]: texture {s} was loaded", .{str_path});
     } else {
-        try Engine.IO.println("AS[ERROR]: texture {s} was failed to load", .{file});
-        return error.File;
+        try Engine.IO.println("AS[ERROR]: texture {s} was failed to load", .{str_path});
     }
 }
 
