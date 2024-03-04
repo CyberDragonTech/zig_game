@@ -39,7 +39,7 @@ pub fn load_texture(
     try str_path.concat(file);
     defer str_path.deinit();
 
-    const texture = gfx.loadBMP(
+    const texture = gfx.load_bmp(
         Engine.Utils.str_to_cstr(str_path.bytes()),
     );
     if (texture) |tex| {

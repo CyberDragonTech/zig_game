@@ -6,3 +6,7 @@ var buffer: [BUFFER_SIZE]u8 = undefined;
 pub fn str_to_cstr(str: []const u8) [:0]const u8 {
     return std.fmt.bufPrintZ(&buffer, "{s}", .{str}) catch "";
 }
+
+pub fn cstr_to_str(str: [*:0]const u8) []const u8 {
+    return std.fmt.bufPrint(&buffer, "{s}", .{str}) catch "";
+}

@@ -71,12 +71,9 @@ pub fn present(self: *Self) !void {
 }
 
 pub fn draw_sprite(self: *Self, sprite: *const Sprite) !void {
-    var dst_rect = Engine.sdl.Rectangle {
-        .x = sprite.dst_rect.x * SPRITE_SIZE,
-        .y = sprite.dst_rect.y * SPRITE_SIZE,
-        .width = sprite.dst_rect.width,
-        .height = sprite.dst_rect.height,
-    };
+    var dst_rect = sprite.dst_rect;
+    dst_rect.x *= SPRITE_SIZE;
+    dst_rect.y *= SPRITE_SIZE;
     if (!self.ui_draw_mode) {
         dst_rect.x += self.camera_offset.x * SPRITE_SIZE;
         dst_rect.x += self.camera_offset.y * SPRITE_SIZE;
@@ -84,7 +81,7 @@ pub fn draw_sprite(self: *Self, sprite: *const Sprite) !void {
     try self.renderer.copy(sprite.texture, dst_rect, sprite.segment);
 }
 
-pub fn loadBMP(self: *Self, file_path: [:0]const u8) ?Engine.sdl.Texture {
+pub fn load_bmp(self: *Self, file_path: [:0]const u8) ?Engine.sdl.Texture {
     var texture: ?Engine.sdl.Texture = null;
     const s_res = Engine.sdl.loadBmp(file_path) catch null;
     if (s_res == null) {

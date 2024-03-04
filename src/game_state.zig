@@ -22,6 +22,13 @@ pub fn run(self: *Self) !void {
     try self.lua_manager.load_lua_api(self);
     try Engine.IO.println("GS[INFO]: Lua API loaded", .{});
 
+    try self.assets_manager.load_texture(
+        Engine.allocator, 
+        &self.gfx, 
+        "spr_test.bmp", 
+        "spr_test"
+    );
+
     var script1 = self.lua_manager.load_script(
         Engine.allocator, 
         "assets/scripts/lua_test.lua", 
@@ -33,12 +40,14 @@ pub fn run(self: *Self) !void {
     defer script1.deinit();
     try Engine.IO.println("GS[INFO]: __script_1__ is loaded", .{});
 
-    try self.assets_manager.load_texture(
-        &self.gfx, 
-        Engine.allocator, 
-        "spr_test.bmp", 
-        "spr_test"
+    try script1.call_function(
+        "start", 
+        0, 
+        &[_]Engine.LuaContext.LuaArgument{}
     );
+    self.lua_manager.clear_stack();
+
+
     const spr_test_res = self.assets_manager.get_texture("spr_test");
     const spr_test: Engine.sdl.Texture = spr_test_res.?;
     const t_info = try spr_test.query();
@@ -80,6 +89,13 @@ pub fn run(self: *Self) !void {
         try self.gfx.start_frame();
 
         try player.draw(self);
+
+        try script1.call_function(
+            "draw", 
+            0, 
+            &[_]Engine.LuaContext.LuaArgument{}
+        );
+        self.lua_manager.clear_stack();
 
         try self.gfx.end_frame();
         try self.gfx.present();

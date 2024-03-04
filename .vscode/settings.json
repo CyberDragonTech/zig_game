@@ -1,6 +1,6 @@
 {
-    "Lua.diagnostics.globals": [
-        "is_key_pressed",
-        "is_key_just_pressed"
-    ]
+    "Lua.diagnostics.disable": ["lowercase-global"],
+    "Lua.workspace.library": [
+        "${workspaceFolder}/assets/lua_api_library"
+    ],
 }
