@@ -211,13 +211,32 @@ pub const LuaScript = struct {
         self.module_name.deinit();
     }
 
-    pub fn call_function(self: *Self, func_name: [:0]const u8, return_expect: u32, args: []const LuaArgument) LMError!void {
+    pub fn call_function(
+        self: *Self, func_name: [:0]const u8, 
+        return_expect: u32, 
+        args: []const LuaArgument,
+        call_self: bool
+    ) LMError!void {
         self.lua_manager.get_module(Engine.Utils.str_to_cstr(self.module_name.bytes())) catch {
             std.debug.panic("LS[PANIC]: Module {s} was not found", .{
                 self.module_name.bytes()
             });
         };
-        try self.lua_manager.call_table_function(-1, func_name, return_expect, args);
+        self.lua_manager.call_table_function(
+            -1, 
+            func_name, 
+            return_expect, 
+            args,
+            call_self
+        ) catch {
+            Engine.IO.print_err("LuaScript[ERROR]: {s} failed to call function {s}", 
+            .{
+                self.module_name, 
+                func_name
+                }
+            );
+            return LMError.LuaRuntime;
+        };
     }
 };
 
@@ -319,10 +338,16 @@ pub const LuaManager = struct {
         tables_stack_index: i32, 
         func_name: [:0]const u8, 
         return_expect: u32, 
-        args: []const LuaArgument
+        args: []const LuaArgument,
+        call_self: bool
     ) LMError!void {
         const f_type = self.lua.getField(tables_stack_index, func_name);
-        const argc: i32 = try self.push_args(args);
+        var argc: i32 = 0;
+        if (call_self) {
+            self.lua.pushValue(tables_stack_index - 1);
+            argc += 1;
+        }
+        argc += try self.push_args(args);
         if (f_type == .function) {
             self.lua.protectedCall(argc, @intCast(return_expect), 0) catch {
                 Engine.IO.print_err("LM[ERROR]: Failed to call Lua function '{s}'\nLua: {s}", .{
@@ -331,6 +356,7 @@ pub const LuaManager = struct {
                         break :ret "";
                     }
                 });
+                self.print_stack();
                 return LMError.LuaRuntime;
             };
         } else {

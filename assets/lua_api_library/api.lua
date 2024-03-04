@@ -5,12 +5,12 @@
 __modules__ = {}
 
 
----@class Rect
----@field x number
----@field y number
----@field w number
----@field h number
-Rect = {}
+-- ---@class Rect
+-- ---@field x number
+-- ---@field y number
+-- ---@field w number
+-- ---@field h number
+-- Rect = {}
 
 ---@class Sprite
 ---@field texture number

@@ -36,8 +36,10 @@ pub fn run(self: *Self) !void {
     try texture_loader.call_function(
         "load", 
         0, 
-        &[_]Engine.LuaContext.LuaArgument{}
+        &[_]Engine.LuaContext.LuaArgument{},
+        false
     );
+    self.lua_manager.clear_stack();
 
     var player = self.lua_manager.load_script(
         Engine.allocator, 
@@ -53,7 +55,8 @@ pub fn run(self: *Self) !void {
     try player.call_function(
         "start", 
         0, 
-        &[_]Engine.LuaContext.LuaArgument{}
+        &[_]Engine.LuaContext.LuaArgument{},
+        true
     );
     self.lua_manager.clear_stack();
 
@@ -71,7 +74,8 @@ pub fn run(self: *Self) !void {
         try player.call_function(
             "update", 
             0, 
-            &[_]Engine.LuaContext.LuaArgument{}
+            &[_]Engine.LuaContext.LuaArgument{},
+            true
         );
         self.lua_manager.clear_stack();
 
@@ -81,7 +85,8 @@ pub fn run(self: *Self) !void {
         try player.call_function(
             "draw", 
             0, 
-            &[_]Engine.LuaContext.LuaArgument{}
+            &[_]Engine.LuaContext.LuaArgument{},
+            true
         );
         self.lua_manager.clear_stack();
 
