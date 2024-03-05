@@ -5,13 +5,12 @@ local Rect = {}
 ---@param w number
 ---@param h number
 function Rect.new(x, y, w, h)
-
 ---@class Rect
 ---@field x number
 ---@field y number
 ---@field w number
 ---@field h number
-    rect = {
+    local rect = {
         x = x,
         y = y,
         w = w,

@@ -76,7 +76,7 @@ pub fn draw_sprite(self: *Self, sprite: *const Sprite) !void {
     dst_rect.y *= SPRITE_SIZE;
     if (!self.ui_draw_mode) {
         dst_rect.x += self.camera_offset.x * SPRITE_SIZE;
-        dst_rect.x += self.camera_offset.y * SPRITE_SIZE;
+        dst_rect.y += self.camera_offset.y * SPRITE_SIZE;
     }
     try self.renderer.copy(sprite.texture, dst_rect, sprite.segment);
 }

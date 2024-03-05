@@ -1,16 +1,7 @@
 ---@meta
 
-
 ---Global list of all loaded scripts in engine
 __modules__ = {}
-
-
--- ---@class Rect
--- ---@field x number
--- ---@field y number
--- ---@field w number
--- ---@field h number
--- Rect = {}
 
 ---@class Sprite
 ---@field texture number
@@ -47,3 +38,11 @@ function gfx_draw_sprite(sprite) end
 ---@param texture_id string
 ---@return boolean
 function load_texture(file, texture_id) end
+
+---If true, sprites will be drawn in screen position, if false - in world position
+---@param mode boolean
+function gfx_set_ui_draw_mode(mode) end
+
+---Set world camera position
+---@param offset Point
+function gfx_set_camera_offset(offset) end

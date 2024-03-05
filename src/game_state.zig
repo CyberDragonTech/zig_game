@@ -16,6 +16,14 @@ input: Engine.Input,
 assets_manager: Engine.AssetsManager,
 lua_manager: Engine.LuaContext.LuaManager,
 
+frame_start: u64,
+frame_end: u64,
+fps_timer: f64,
+fps_counter: u16,
+fps: u16,
+frame_limit: i8,
+delta_time_sec: f64,
+
 
 
 pub fn run(self: *Self) !void {
@@ -24,7 +32,7 @@ pub fn run(self: *Self) !void {
 
     var texture_loader = self.lua_manager.load_script(
         Engine.allocator, 
-        "assets/scripts/texture_loader.lua", 
+        "assets/scripts/modules/texture_loader.lua", 
         "__texture_loader__"
     ) catch {
         Engine.IO.print_err("Failed to load TextureLoader script", .{});
@@ -43,7 +51,7 @@ pub fn run(self: *Self) !void {
 
     var player = self.lua_manager.load_script(
         Engine.allocator, 
-        "assets/scripts/player.lua", 
+        "assets/scripts/modules/player.lua", 
         "__player__"
     ) catch {
         Engine.IO.print_err("Failed to load Player script", .{});
@@ -61,6 +69,16 @@ pub fn run(self: *Self) !void {
     self.lua_manager.clear_stack();
 
     mainLoop: while (true) {
+        self.frame_end = self.frame_start;
+        self.frame_start = Engine.sdl.getPerformanceCounter();
+        
+        const delta: u64 = (self.frame_start - self.frame_end) * 1000;
+        const delta_sec: f64 = @as(f64, @floatFromInt(delta)) / 
+            @as(f64, @floatFromInt(Engine.sdl.getPerformanceFrequency()));
+        self.delta_time_sec = delta_sec;
+        // Engine.IO.print_err("{d:.2}", .{delta_sec});
+
+
         self.input.update();
 
         while (Engine.sdl.pollEvent()) |ev| {
@@ -140,5 +158,12 @@ pub fn init() !Self {
         .input = try Engine.Input.init(Engine.allocator),
         .assets_manager = Engine.AssetsManager.init(Engine.allocator),
         .lua_manager = lua,
+        .delta_time_sec = 0.0,
+        .frame_limit = 60,
+        .fps = 0,
+        .fps_counter = 0,
+        .fps_timer = 0.0,
+        .frame_start = 0,
+        .frame_end = 0,
     };
 }

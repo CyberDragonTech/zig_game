@@ -29,6 +29,8 @@ const LuaApi = struct {
         push_function(lua, "get_texture", get_texture);
         push_function(lua, "gfx_draw_sprite", gfx_draw_sprite);
         push_function(lua, "load_texture", load_texture);
+        push_function(lua, "gfx_set_ui_draw_mode", gfx_set_ui_draw_mode);
+        push_function(lua, "gfx_set_camera_offset", gfx_set_camera_offset);
     }
 
     fn push_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
@@ -73,6 +75,30 @@ const LuaApi = struct {
             .y      = @intCast(y),
             .width  = @intCast(w),
             .height = @intCast(h),
+        };
+    }
+
+    fn table_to_point(lua: *Engine.ziglua.Lua, index: i32) ?Engine.sdl.Point {
+        if (!lua.isTable(index)) {
+            return null;
+        }
+        _ = lua.pushString("x");
+        _ = lua.getTable(-2);
+        const x = lua.toInteger(-1) catch {
+            return null;
+        };
+        lua.pop(1);
+
+        _ = lua.pushString("y");
+        _ = lua.getTable(-2);
+        const y = lua.toInteger(-1) catch {
+            return null;
+        };
+        lua.pop(1);
+
+        return Engine.sdl.Point {
+            .x      = @intCast(x),
+            .y      = @intCast(y),
         };
     }
 
@@ -196,6 +222,24 @@ const LuaApi = struct {
         }
         lua.pushBoolean(res);
         return if (res) 1 else 0;
+    }
+
+    pub fn gfx_set_ui_draw_mode(lua: *Engine.ziglua.Lua) i32 {
+        if (game_state) |gs| {
+            const mode = lua.toBoolean(1);
+            gs.gfx.ui_draw_mode = mode;
+        }
+        return 1;
+    }
+
+    pub fn gfx_set_camera_offset(lua: *Engine.ziglua.Lua) i32 {
+        if (game_state) |gs| {
+            const point = table_to_point(lua, 1);
+            if (point) |offset| {
+                gs.gfx.camera_offset = offset;
+            }
+        }
+        return 1;
     }
 };
 
