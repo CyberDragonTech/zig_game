@@ -30,6 +30,12 @@ pub fn build(b: *std.Build) void {
     });
     exe.root_module.addImport("ziglua", ziglua.module("ziglua"));
 
+    const zig_datetime = b.dependency("zig_datetime", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addImport("zig_datetime", zig_datetime.module("zig-datetime"));
+
     const zigstr = b.dependency("zigstr", .{
         .target = target,
         .optimize = optimize,

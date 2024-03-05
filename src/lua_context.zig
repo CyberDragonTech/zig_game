@@ -267,7 +267,7 @@ const LuaApi = struct {
     }
 
     pub fn sprite_size(lua: *Engine.ziglua.Lua) i32 {
-        var res = 0;
+        var res: u32 = 0;
         if (game_state) |_| {
             res = Engine.Gfx.SPRITE_SIZE;
         }
@@ -276,7 +276,7 @@ const LuaApi = struct {
     }
 
     pub fn target_width(lua: *Engine.ziglua.Lua) i32 {
-        var res = 0;
+        var res: u32 = 0;
         if (game_state) |_| {
             res = Engine.Gfx.TARGET_WIDTH;
         }
@@ -285,7 +285,7 @@ const LuaApi = struct {
     }
 
     pub fn target_height(lua: *Engine.ziglua.Lua) i32 {
-        var res = 0;
+        var res: u32 = 0;
         if (game_state) |_| {
             res = Engine.Gfx.TARGET_HEIGHT;
         }

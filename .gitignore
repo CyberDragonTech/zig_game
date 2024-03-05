@@ -1,6 +1,6 @@
 zig-cache/
 zig-out/
-
+logs/
 
 .git_token
 

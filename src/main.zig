@@ -1,15 +1,17 @@
 const Engine = @import("engine.zig");
-const std = @import("std");
+
 
 
 pub fn main() !void {
+    Engine.Logger.init();
     var game_state = Engine.GameState.init() catch {
-        Engine.IO.print_err("Error occured during program initialization", .{});
-        _ = Engine.IO.readln();
+        Engine.Logger.log_error("Core", "Error occured during program initialization", .{});
         return;
     };
+    Engine.Logger.log_info("Core", "GameState initialized", .{});
     game_state.run() catch {
-        Engine.IO.print_err("Error occured during program execution", .{});
+        Engine.Logger.log_error("Core", "Error occured during program execution", .{});
     };
     game_state.deinit();
+    Engine.Logger.deinit();
 }

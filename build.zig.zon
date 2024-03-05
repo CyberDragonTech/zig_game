@@ -9,6 +9,9 @@
         .zigstr = .{
             .path = "deps/zigstr"
         },
+        .zig_datetime = .{
+            .path = "deps/zig-datetime"
+        },
     },
 
     .paths = .{

@@ -96,30 +96,36 @@ pub fn deinit(self: *Self) void {
 }
 
 pub fn init() !Self {
-    try Engine.IO.println("Starting...", .{});
-    try Engine.sdl.init(.{
+    Engine.sdl.init(.{
         .video = true,
         .events = true,
         .audio = true,
-    });
-
+    }) catch {
+        Engine.Logger.log_error("GameState", "Failed to initialize SDL2", .{});
+        return error.SdlError;
+    };
+    Engine.Logger.log_info("GameState", "GameState initialized", .{});
+//------------------------------------------------------------------------------------------------------
     const window = try Engine.sdl.createWindow(
         "SDL2 Wrapper Demo",
         .{ .centered = {} }, .{ .centered = {} },
         640, 480,
         .{ .vis = .shown, .resizable = true },
     );
-    try Engine.IO.println("GS[INFO]: Window created", .{});
-
-    const _gfx = try Engine.Gfx.init(window);
-    try Engine.IO.println("GS[INFO]: Graphics initialized", .{});
-
+    Engine.Logger.log_info("GameState", "Window created", .{});
+//------------------------------------------------------------------------------------------------------
+    const _gfx = Engine.Gfx.init(window) catch {
+        Engine.Logger.log_error("GameState", "Failed to initialize Graphics", .{});
+        return error.SdlError;
+    };
+    Engine.Logger.log_info("GameState", "Graphics initialized", .{});
+//------------------------------------------------------------------------------------------------------
     const lua = Engine.LuaContext.LuaManager.init(Engine.allocator) catch {
         Engine.IO.print_err("GS[ERROR]: Failed to initialize Lua", .{});
         return error.Runtime;
     };
-    try Engine.IO.println("GS[INFO]: Lua Manager initialized", .{});
-
+    Engine.Logger.log_info("GameState", "Lua Manager initialized", .{});
+//------------------------------------------------------------------------------------------------------
     return Self{
         .window = window,
         .gfx = _gfx,

@@ -3,6 +3,7 @@ pub const sdl = @import("sdl2");
 pub const ziglua = @import("ziglua");
 pub const zigstr = @import("zigstr");
 
+pub const Logger = @import("log.zig");
 pub const Utils = @import("utils.zig");
 pub const IO = @import("io.zig");
 pub const GameState = @import("game_state.zig");
