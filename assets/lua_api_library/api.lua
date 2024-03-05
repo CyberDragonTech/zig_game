@@ -54,3 +54,15 @@ function delta_time_seconds() end
 ---Return frames in previos second
 ---@return number
 function fps() end
+
+---Gfx sprite segment size in pixels
+---@return number
+function sprite_size() end
+
+---Gfx target width in pixels
+---@return number
+function target_width() end
+
+---Gfx target width in 
+---@return number
+function target_height() end

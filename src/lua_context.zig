@@ -34,6 +34,9 @@ const LuaApi = struct {
         push_function(lua, "gfx_set_camera_offset", gfx_set_camera_offset);
         push_function(lua, "delta_time_seconds", delta_time_seconds);
         push_function(lua, "fps", fps);
+        push_function(lua, "sprite_size", sprite_size);
+        push_function(lua, "target_width", target_width);
+        push_function(lua, "target_height", target_height);
     }
 
     fn push_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
@@ -260,6 +263,33 @@ const LuaApi = struct {
             res = gs.game_time.fps;
         }
         lua.pushInteger(@intCast(res));
+        return 1;
+    }
+
+    pub fn sprite_size(lua: *Engine.ziglua.Lua) i32 {
+        var res = 0;
+        if (game_state) |_| {
+            res = Engine.Gfx.SPRITE_SIZE;
+        }
+        lua.pushInteger(res);
+        return 1;
+    }
+
+    pub fn target_width(lua: *Engine.ziglua.Lua) i32 {
+        var res = 0;
+        if (game_state) |_| {
+            res = Engine.Gfx.TARGET_WIDTH;
+        }
+        lua.pushInteger(res);
+        return 1;
+    }
+
+    pub fn target_height(lua: *Engine.ziglua.Lua) i32 {
+        var res = 0;
+        if (game_state) |_| {
+            res = Engine.Gfx.TARGET_HEIGHT;
+        }
+        lua.pushInteger(res);
         return 1;
     }
 };
