@@ -1,7 +1,5 @@
 const std = @import("std");
 const Engine = @import("engine.zig");
-// const Player = @import("player.zig");
-
 
 
 
@@ -21,48 +19,36 @@ pub fn run(self: *Self) !void {
     try self.lua_manager.load_lua_api(self);
     try Engine.IO.println("GS[INFO]: Lua API loaded", .{});
 
-    var texture_loader = self.lua_manager.load_script(
+    var texture_loader = Engine.LuaObject.fromScriptFile(
         Engine.allocator, 
+        &self.lua_manager, 
         "assets/scripts/modules/texture_loader.lua", 
-        "__texture_loader__"
-    ) catch {
-        Engine.IO.print_err("Failed to load TextureLoader script", .{});
-        return error.Fail;
-    };
-    defer texture_loader.deinit();
-    try Engine.IO.println("GS[INFO]: TextureLoader script is loaded", .{});
-
-    try texture_loader.call_function(
+        "__texture_loader__",
+    );
+    texture_loader.call_function(
         "load", 
         0, 
-        &[_]Engine.LuaContext.LuaArgument{},
-        false
+        &Engine.LuaContext.NoArguments
     );
     self.lua_manager.clear_stack();
 
-    var player = self.lua_manager.load_script(
+    var player = Engine.LuaObject.fromScriptFile(
         Engine.allocator, 
+        &self.lua_manager, 
         "assets/scripts/modules/player.lua", 
-        "__player__"
-    ) catch {
-        Engine.IO.print_err("Failed to load Player script", .{});
-        return error.Fail;
-    };
-    defer player.deinit();
-    try Engine.IO.println("GS[INFO]: Player script is loaded", .{});
+        "__player__",
+    );
 
-    try player.call_function(
+    player.call_self_function(
         "start", 
         0, 
-        &[_]Engine.LuaContext.LuaArgument{},
-        true
+        &Engine.LuaContext.NoArguments
     );
     self.lua_manager.clear_stack();
 
 
     mainLoop: while (true) {
         self.game_time.update();
-
         self.input.update();
 
         while (Engine.sdl.pollEvent()) |ev| {
@@ -73,22 +59,20 @@ pub fn run(self: *Self) !void {
             }
         }
 
-        try player.call_function(
+        player.call_self_function(
             "update", 
             0, 
-            &[_]Engine.LuaContext.LuaArgument{},
-            true
+            &Engine.LuaContext.NoArguments
         );
         self.lua_manager.clear_stack();
 
         try self.gfx.clear_screen();
         try self.gfx.start_frame();
-
-        try player.call_function(
+        
+        player.call_self_function(
             "draw", 
             0, 
-            &[_]Engine.LuaContext.LuaArgument{},
-            true
+            &Engine.LuaContext.NoArguments
         );
         self.lua_manager.clear_stack();
 

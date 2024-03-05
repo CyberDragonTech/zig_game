@@ -11,6 +11,7 @@ const LMError = error {
     LuaRuntime,
 };
 
+pub const NoArguments = [0]Engine.LuaContext.LuaArgument{};
 pub const LuaArgument = union(enum) {
     None: void,
     Nil: void,
@@ -254,7 +255,7 @@ const LuaApi = struct {
     }
 
     pub fn fps(lua: *Engine.ziglua.Lua) i32 {
-        var res: i16 = 0;
+        var res: u16 = 0;
         if (game_state) |gs| {
             res = gs.game_time.fps;
         }
@@ -267,23 +268,23 @@ pub const LuaScript = struct {
     const Self = @This();
 
     file_path: Engine.zigstr,
-    module_name: Engine.zigstr,
+    object_name: Engine.zigstr,
     lua_manager: *LuaManager,
 
     pub fn deinit(self: *Self) void {
         self.file_path.deinit();
-        self.module_name.deinit();
+        self.object_name.deinit();
     }
 
     pub fn call_function(
-        self: *Self, func_name: [:0]const u8, 
+        self: *const Self, func_name: [:0]const u8, 
         return_expect: u32, 
         args: []const LuaArgument,
         call_self: bool
     ) LMError!void {
-        self.lua_manager.get_module(Engine.Utils.str_to_cstr(self.module_name.bytes())) catch {
+        self.lua_manager.get_module(Engine.Utils.str_to_cstr(self.object_name.bytes())) catch {
             std.debug.panic("LS[PANIC]: Module {s} was not found", .{
-                self.module_name.bytes()
+                self.object_name.bytes()
             });
         };
         self.lua_manager.call_table_function(
@@ -295,7 +296,7 @@ pub const LuaScript = struct {
         ) catch {
             Engine.IO.print_err("LuaScript[ERROR]: {s} failed to call function {s}", 
             .{
-                self.module_name, 
+                self.object_name, 
                 func_name
                 }
             );
@@ -335,7 +336,7 @@ pub const LuaManager = struct {
     }
 
     pub fn load_script(
-        self: *Self, allocator: std.mem.Allocator, file_path: []const u8, module_name: []const u8
+        self: *Self, allocator: std.mem.Allocator, file_path: []const u8, object_name: []const u8
     ) !LuaScript {
         self.get_modules_table();
         self.lua.loadFile(Engine.Utils.str_to_cstr(file_path), .text) catch {
@@ -352,10 +353,10 @@ pub const LuaManager = struct {
             });
             return error.File;
         };
-        self.lua.setField(-2, Engine.Utils.str_to_cstr(module_name));
+        self.lua.setField(-2, Engine.Utils.str_to_cstr(object_name));
         return LuaScript {
             .file_path = try Engine.zigstr.fromConstBytes(allocator, file_path),
-            .module_name = try Engine.zigstr.fromConstBytes(allocator, module_name),
+            .object_name = try Engine.zigstr.fromConstBytes(allocator, object_name),
             .lua_manager = self,
         };
     }
