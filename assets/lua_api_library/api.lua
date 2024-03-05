@@ -46,3 +46,11 @@ function gfx_set_ui_draw_mode(mode) end
 ---Set world camera position
 ---@param offset Point
 function gfx_set_camera_offset(offset) end
+
+---Return time in secods that was taken to proccess previous frame
+---@return number
+function delta_time_seconds() end
+
+---Return frames in previos second
+---@return number
+function fps() end

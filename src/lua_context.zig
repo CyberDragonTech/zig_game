@@ -31,6 +31,8 @@ const LuaApi = struct {
         push_function(lua, "load_texture", load_texture);
         push_function(lua, "gfx_set_ui_draw_mode", gfx_set_ui_draw_mode);
         push_function(lua, "gfx_set_camera_offset", gfx_set_camera_offset);
+        push_function(lua, "delta_time_seconds", delta_time_seconds);
+        push_function(lua, "fps", fps);
     }
 
     fn push_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
@@ -239,6 +241,24 @@ const LuaApi = struct {
                 gs.gfx.camera_offset = offset;
             }
         }
+        return 1;
+    }
+
+    pub fn delta_time_seconds(lua: *Engine.ziglua.Lua) i32 {
+        var res: f64 = 0.0;
+        if (game_state) |gs| {
+            res = gs.game_time.delta_time_seconds;
+        }
+        lua.pushNumber(res);
+        return 1;
+    }
+
+    pub fn fps(lua: *Engine.ziglua.Lua) i32 {
+        var res: i16 = 0;
+        if (game_state) |gs| {
+            res = gs.game_time.fps;
+        }
+        lua.pushInteger(@intCast(res));
         return 1;
     }
 };
