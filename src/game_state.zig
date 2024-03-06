@@ -2,6 +2,7 @@ const std = @import("std");
 const Engine = @import("engine.zig");
 
 
+const MODULE_STRING: []const u8 = "GameState";
 
 const Self = @This();
 
@@ -16,8 +17,11 @@ game_time: Engine.GameTime,
 
 
 pub fn run(self: *Self) !void {
-    try self.lua_manager.load_lua_api(self);
-    try Engine.IO.println("GS[INFO]: Lua API loaded", .{});
+    self.lua_manager.load_lua_api(self) catch {
+        Engine.Logger.log_error(MODULE_STRING, "Lua API failed loaded", .{});
+        return error.Fail;
+    };
+    Engine.Logger.log_info(MODULE_STRING, "Lua API loaded", .{});
 
     var texture_loader = Engine.LuaObject.fromScriptFile(
         Engine.allocator, 
@@ -79,19 +83,30 @@ pub fn run(self: *Self) !void {
         try self.gfx.end_frame();
         try self.gfx.present();
     }
-    try Engine.IO.println("Finishing...", .{});
+    Engine.Logger.log_info(MODULE_STRING, "Finishing game loop", .{});
 }
 
 pub fn deinit(self: *Self) void {
     self.lua_manager.deinit();
+    Engine.Logger.log_info(MODULE_STRING, "LuaManager deinitialized", .{});
     self.assets_manager.deinit();
+    Engine.Logger.log_info(MODULE_STRING, "AssetsManager deinitialized", .{});
     self.input.deinit();
+    Engine.Logger.log_info(MODULE_STRING, "InputManager deinitialized", .{});
     self.gfx.deinit();
+    Engine.Logger.log_info(MODULE_STRING, "Gfx deinitialized", .{});
     self.window.destroy();
+    Engine.Logger.log_info(MODULE_STRING, "Window closed", .{});
     Engine.sdl.quit();
+    Engine.Logger.log_info(MODULE_STRING, "SDL2 deinitialized", .{});
     const res = Engine.gpa.deinit();
+    Engine.Logger.log_info(MODULE_STRING, "GeneralPerposeAllocator deinitialized", .{});
     if (res == .leak) {
-        Engine.IO.print_err("Memory leak has been identified during programm execution", .{});
+        Engine.Logger.log_debug(
+            MODULE_STRING, 
+            "Memory leak has been identified during programm execution", 
+            .{}
+        );
     }
 }
 
@@ -101,10 +116,10 @@ pub fn init() !Self {
         .events = true,
         .audio = true,
     }) catch {
-        Engine.Logger.log_error("GameState", "Failed to initialize SDL2", .{});
+        Engine.Logger.log_error(MODULE_STRING, "Failed to initialize SDL2", .{});
         return error.SdlError;
     };
-    Engine.Logger.log_info("GameState", "GameState initialized", .{});
+    Engine.Logger.log_info(MODULE_STRING, "GameState initialized", .{});
 //------------------------------------------------------------------------------------------------------
     const window = try Engine.sdl.createWindow(
         "SDL2 Wrapper Demo",
@@ -112,25 +127,34 @@ pub fn init() !Self {
         640, 480,
         .{ .vis = .shown, .resizable = true },
     );
-    Engine.Logger.log_info("GameState", "Window created", .{});
+    Engine.Logger.log_info(MODULE_STRING, "Window created", .{});
 //------------------------------------------------------------------------------------------------------
     const _gfx = Engine.Gfx.init(window) catch {
-        Engine.Logger.log_error("GameState", "Failed to initialize Graphics", .{});
+        Engine.Logger.log_error(MODULE_STRING, "Failed to initialize Gfx", .{});
         return error.SdlError;
     };
-    Engine.Logger.log_info("GameState", "Graphics initialized", .{});
+    Engine.Logger.log_info(MODULE_STRING, "Graphics initialized", .{});
+//------------------------------------------------------------------------------------------------------
+    const input = Engine.Input.init(Engine.allocator) catch {
+        Engine.Logger.log_error(MODULE_STRING, "Failed to initialize InputManager", .{});
+        return error.Fail;
+    };
+    Engine.Logger.log_info(MODULE_STRING, "InputManager initialized", .{});
+//------------------------------------------------------------------------------------------------------
+    const assets_manager = Engine.AssetsManager.init(Engine.allocator);
+    Engine.Logger.log_info(MODULE_STRING, "AssetsManager initialized", .{});
 //------------------------------------------------------------------------------------------------------
     const lua = Engine.LuaContext.LuaManager.init(Engine.allocator) catch {
-        Engine.IO.print_err("GS[ERROR]: Failed to initialize Lua", .{});
+        Engine.Logger.log_error(MODULE_STRING, "Failed to initialize Lua", .{});
         return error.Runtime;
     };
-    Engine.Logger.log_info("GameState", "Lua Manager initialized", .{});
+    Engine.Logger.log_info(MODULE_STRING, "LuaManager initialized", .{});
 //------------------------------------------------------------------------------------------------------
     return Self{
         .window = window,
         .gfx = _gfx,
-        .input = try Engine.Input.init(Engine.allocator),
-        .assets_manager = Engine.AssetsManager.init(Engine.allocator),
+        .input = input,
+        .assets_manager = assets_manager,
         .lua_manager = lua,
         .game_time = Engine.GameTime.init(),
     };

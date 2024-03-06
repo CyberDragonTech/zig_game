@@ -24,7 +24,6 @@ pub fn init() void {
             dt.time.minute
         }
     ) catch debug_log_file_path;
-    std.debug.print("{s}", .{log_file_name_path});
 
     std.fs.cwd().makeDir("logs") catch {};
     log_file = std.fs.cwd().createFile(log_file_name_path, .{
@@ -50,6 +49,20 @@ fn log_line(
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
+    const dt = Datetime.now();
+    const date_str = std.fmt.bufPrint(
+        &log_file_path_buf, 
+        "{}.{}.{}_{}.{}|", 
+        .{
+            dt.date.year,
+            dt.date.month,
+            dt.date.day,
+            dt.time.hour,
+            dt.time.minute
+        }
+    ) catch "0000.00.00_00.00|";
+
+    stdout.print("{s}", .{date_str}) catch {};
     stdout.print(module, .{}) catch {};
     stdout.print(level, .{}) catch {};
     stdout.print(fmt, args) catch {};
@@ -57,11 +70,13 @@ fn log_line(
 
     if (log_file) |file| {
         const writer = file.writer();
+        writer.print("{s}", .{date_str}) catch {};
         writer.print(module, .{}) catch {};
         writer.print(level, .{}) catch {};
         writer.print(fmt, args) catch {};
         writer.print("\n", .{}) catch {};
     }
+    bw.flush() catch {};
 }
 
 pub fn log_info(comptime module: []const u8, comptime fmt: []const u8, args: anytype) void {
@@ -80,4 +95,9 @@ pub fn log_debug(comptime module: []const u8, comptime fmt: []const u8, args: an
     if (builtin.mode == .Debug) {
         log_line(module, "[DEBUG]:", fmt, args);
     }
+}
+
+pub fn panic(comptime module: []const u8, comptime fmt: []const u8, args: anytype) void {
+    log_line(module, "[PANIC]:", fmt, args);
+    std.debug.panic("", .{});
 }

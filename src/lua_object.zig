@@ -15,9 +15,10 @@ pub fn fromScriptFile(
     object_name: []const u8
 ) Self {
     const script = lua_manager.load_script(allocator, file_path, object_name) catch ret: {
-        Engine.IO.print_err("LuaObjest[ERROR]: Failed to load script: {s}", .{file_path});
+        Engine.Logger.log_warn("LuaObject", "Failed to load script {s}", .{file_path});
         break :ret null;
     };
+    Engine.Logger.log_info("LuaObject", "Loaded script {s}", .{file_path});
     return Self {
         .lua_scrips = script,
     };
@@ -25,6 +26,7 @@ pub fn fromScriptFile(
 
 pub fn deinit(self: *Self) void {
     if (self.lua_scrips) |script| {
+        Engine.Logger.log_info("LuaObject", "Unloading script {s}", .{script.file_path});
         script.deinit();
     }
 }

@@ -3,7 +3,7 @@ const Engine = @import("engine.zig");
 
 
 const TEXTURE_ASSES_PATH: []const u8 = "assets/textures/";
-
+const MOSULE_STRING: []const u8 = "AssetsManager";
 
 const Self = @This();
 
@@ -26,14 +26,16 @@ pub fn deinit(self: *Self) void {
         self.textures.allocator.free(entry.key_ptr.*);
     }
     self.textures.deinit();
-    Engine.IO.print_err("AS[INFO]: deinitialized", .{});
 }
 
 pub fn dump(self: *Self) void {
-    Engine.IO.print_err("AS[INFO]: Entires:", .{});
+    Engine.Logger.log_debug(MOSULE_STRING, "Entries:", .{});
     var iter = self.textures.iterator();
     while (iter.next()) |entry| {
-        Engine.IO.print_err("AS[INFO]: \"{s}\" | {}", .{entry.key_ptr.*, entry.value_ptr});
+        Engine.Logger.log_debug(
+            MOSULE_STRING, "\"{s}\" | {}", 
+            .{entry.key_ptr.*, entry.value_ptr}
+        );
     }
 }
 
@@ -56,9 +58,17 @@ pub fn load_texture(
         self.textures.put(id, tex) catch {
             return error.Memory; 
         };
-        try Engine.IO.println("AS[INFO]: texture {s} was loaded", .{str_path});
+        Engine.Logger.log_info(
+            MOSULE_STRING, 
+            "Texture {s} was added", 
+            .{str_path}
+        );
     } else {
-        try Engine.IO.println("AS[ERROR]: texture {s} was failed to load", .{str_path});
+        Engine.Logger.log_error(
+            MOSULE_STRING, 
+            "Tailed to add texture {s}", 
+            .{str_path}
+        );
     }
 }
 

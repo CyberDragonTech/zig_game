@@ -3,6 +3,7 @@ const Engine = @import("engine.zig");
 pub const Sprite = @import("sprite.zig");
 
 
+const MODULE_STRING: []const u8 = "Gfx";
 const Self = @This();
 
 pub const TARGET_WIDTH: u32 = 256;
@@ -85,10 +86,19 @@ pub fn load_bmp(self: *Self, file_path: [:0]const u8) ?Engine.sdl.Texture {
     var texture: ?Engine.sdl.Texture = null;
     const s_res = Engine.sdl.loadBmp(file_path) catch null;
     if (s_res == null) {
-        Engine.IO.print_err("Failed to load texture at: {s}", .{file_path});
+        Engine.Logger.log_error(
+            MODULE_STRING, 
+            "Failed to load texture at: {s}", 
+            .{file_path}
+        );
         return null;
     }
     texture = Engine.sdl.createTextureFromSurface(self.renderer, s_res.?) catch null;
+    Engine.Logger.log_error(
+        MODULE_STRING, 
+        "Texture {s} was loaded", 
+        .{file_path}
+    );
     return texture;
 }
 

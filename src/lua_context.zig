@@ -313,7 +313,7 @@ pub const LuaScript = struct {
         call_self: bool
     ) LMError!void {
         self.lua_manager.get_module(Engine.Utils.str_to_cstr(self.object_name.bytes())) catch {
-            std.debug.panic("LS[PANIC]: Module {s} was not found", .{
+            Engine.Logger.panic("LuaScript", "Module {s} was not found", .{
                 self.object_name.bytes()
             });
         };
@@ -324,12 +324,10 @@ pub const LuaScript = struct {
             args,
             call_self
         ) catch {
-            Engine.IO.print_err("LuaScript[ERROR]: {s} failed to call function {s}", 
-            .{
+            Engine.Logger.log_error("LuaScript", "{s} failed to call function {s}", .{
                 self.object_name, 
                 func_name
-                }
-            );
+            });
             return LMError.LuaRuntime;
         };
     }
