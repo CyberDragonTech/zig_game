@@ -13,6 +13,7 @@ pub const Gfx = @import("gfx.zig");
 pub const AssetsManager = @import("assets_manager.zig");
 pub const LuaContext = @import("lua_context.zig");
 pub const LuaObject = @import("lua_object.zig");
+pub const LuaAPI = @import("lua_api.zig").LuaAPI;
 
 
 pub var gpa = std.heap.GeneralPurposeAllocator(.{}){};

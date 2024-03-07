@@ -11,7 +11,7 @@ function Entity:start()
     self.counter = math.random(MIN_COUNTER, MAX_COUNTER)
     ---@class (exact) Sprite
     self.sprite = {}
-    self.sprite.texture = get_texture("entity")
+    self.sprite.texture = AssetsManager.get_texture("entity")
     self.sprite.segment = Rect.new(0, 0, 16, 16)
     self.sprite.dst_rect = Rect.new(10, 10, 16, 16)
 end
@@ -41,7 +41,7 @@ end
 
 function Entity:draw()
     self.sprite.dst_rect:set_position(self.position.x, self.position.y)
-    gfx_draw_sprite(self.sprite)
+    Gfx.draw_sprite(self.sprite)
 end
 
 return Entity

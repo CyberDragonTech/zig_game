@@ -14,7 +14,7 @@ function Player:start()
     self.position = Point.new(0, 0)
     ---@class (exact) Sprite
     self.sprite = {}
-    self.sprite.texture = get_texture("entity")
+    self.sprite.texture = AssetsManager.get_texture("entity")
     self.sprite.segment = Rect.new(0, 0, 16, 16)
     self.sprite.dst_rect = Rect.new(0, 0, 16, 16)
 end
@@ -22,21 +22,21 @@ end
 function Player:update()
     self.entity:update()
     self.entity1:update()
-    if is_key_just_pressed(scancodes.SDL_SCANCODE_W) then
+    if Input.is_key_just_pressed(scancodes.SDL_SCANCODE_W) then
         self.position:move(0, -1)
     end
-    if is_key_just_pressed(scancodes.SDL_SCANCODE_S) then
+    if Input.is_key_just_pressed(scancodes.SDL_SCANCODE_S) then
         self.position:move(0, 1)
     end
 
-    if is_key_just_pressed(scancodes.SDL_SCANCODE_A) then
+    if Input.is_key_just_pressed(scancodes.SDL_SCANCODE_A) then
         self.position:move(-1, 0)
     end
-    if is_key_just_pressed(scancodes.SDL_SCANCODE_D) then
+    if Input.is_key_just_pressed(scancodes.SDL_SCANCODE_D) then
         self.position:move(1, 0)
     end
 
-    gfx_set_camera_offset(Point.new(-self.position.x + 7, -self.position.y + 7))
+    Gfx.set_camera_offset(Point.new(-self.position.x + 7, -self.position.y + 7))
 end
 
 function Player:draw()
@@ -44,7 +44,7 @@ function Player:draw()
     self.entity1:draw()
 
     self.sprite.dst_rect:set_position(self.position.x, self.position.y)
-    gfx_draw_sprite(self.sprite)
+    Gfx.draw_sprite(self.sprite)
 end
 
 return Player

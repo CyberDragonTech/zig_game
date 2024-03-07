@@ -2,8 +2,8 @@ local TextureLoader = {}
 
 
 function TextureLoader.load()
-    if not load_texture("entity.bmp", "entity") then
-        print("TextureLoader[ERROR]: Failed to load entity.bmp")
+    if not AssetsManager.load_texture("entity.bmp", "entity") then
+        print("[Lua]TextureLoader[ERROR]: Failed to load entity.bmp")
     end
 end
 
