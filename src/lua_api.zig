@@ -127,7 +127,7 @@ const LuaAPI_Structs = struct {
         var x: i64 = 0;
         var y: i64 = 0;
         const mx = lua.toInteger(2) catch 0;
-        const my = lua.toInteger(2) catch 0;
+        const my = lua.toInteger(3) catch 0;
 
         if (lua.getField(1, "x") == .number) {
             x = @intCast(lua.toInteger(-1) catch 0);
@@ -149,7 +149,7 @@ const LuaAPI_Structs = struct {
     
     fn point_set_position(lua: *Engine.ziglua.Lua) i32 {
         const x = lua.toInteger(2) catch 0;
-        const y = lua.toInteger(2) catch 0;
+        const y = lua.toInteger(3) catch 0;
 
         lua.pushInteger(x);
         lua.setField(1, "x");
@@ -173,7 +173,7 @@ const LuaAPI_Structs = struct {
 
     fn point(lua: *Engine.ziglua.Lua) i32 {
         const x = lua.toInteger(1) catch 0;
-        const y = lua.toInteger(1) catch 0;
+        const y = lua.toInteger(2) catch 0;
 
         lua.newTable();
         lua.pushInteger(x);
@@ -191,9 +191,9 @@ const LuaAPI_Structs = struct {
 
     fn rect(lua: *Engine.ziglua.Lua) i32 {
         const x = lua.toInteger(1) catch 0;
-        const y = lua.toInteger(1) catch 0;
-        const w = lua.toInteger(1) catch 0;
-        const h = lua.toInteger(1) catch 0;
+        const y = lua.toInteger(2) catch 0;
+        const w = lua.toInteger(3) catch 0;
+        const h = lua.toInteger(4) catch 0;
 
         lua.newTable();
         lua.pushInteger(x);

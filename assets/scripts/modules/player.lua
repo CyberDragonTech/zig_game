@@ -1,12 +1,10 @@
 local scancodes = require "assets.scripts.scancodes"
-local Rect = require "assets.scripts.core.rect"
-local Point = require "assets.scripts.core.point"
 
 local Player = {}
 
 
 function Player:start()
-    self.position = point(0, 0)
+    self.position = point(2, 0)
     ---@class (exact) Sprite
     self.sprite = {}
     self.sprite.texture = AssetsManager.get_texture("entity")
@@ -29,7 +27,7 @@ function Player:update()
         self.position:move(1, 0)
     end
 
-    Gfx.set_camera_offset(point(-self.position.x + 7, -self.position.y + 7))
+    Gfx.set_camera_offset(point(-self.position.x, -self.position.y))
 end
 
 function Player:draw()
