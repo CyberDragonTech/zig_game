@@ -1,6 +1,13 @@
 {
+    
     "Lua.diagnostics.disable": ["lowercase-global"],
     "Lua.workspace.library": [
         "${workspaceFolder}/assets/lua_api_library"
     ],
+    "editor.mouseWheelZoom": true,
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "never",
+        "source.organizeImports": "never"
+    },
 }

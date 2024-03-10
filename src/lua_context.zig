@@ -52,7 +52,7 @@ pub const LuaScript = struct {
             args,
             call_self
         ) catch {
-            Engine.Logger.log_error("LuaScript", "{s} failed to call function {s}", .{
+            Engine.Logger.log_error("LuaScript", "\"{s}\" failed to call function \"{s}\"", .{
                 self.object_name, 
                 func_name
             });
@@ -64,6 +64,7 @@ pub const LuaScript = struct {
 
 pub const LuaManager = struct {
     const Self = @This();
+    const MODULE_STRING: []const u8 = "LuaManager";
     
     pub const MODULES_TABLE_NAME: [:0]const u8 = "__modules__";
 
@@ -95,14 +96,14 @@ pub const LuaManager = struct {
     ) !LuaScript {
         self.get_modules_table();
         self.lua.loadFile(Engine.Utils.str_to_cstr(file_path), .text) catch {
-            Engine.IO.print_err("GS[ERROR]: Failed to load lua file {s}\nLua: {s}", .{
+            Engine.Logger.log_error(MODULE_STRING, "Failed to load lua file {s}\nLua: {s}", .{
                 file_path,
                 try self.lua.toString(-1)
             });
             return error.Runtime;
         };
         self.lua.protectedCall(0, 1, 0) catch {
-            Engine.IO.print_err("GS[ERROR]: Failed to load lua module {s}\nLua: {s}", .{
+            Engine.Logger.log_error(MODULE_STRING, "Failed to load lua module \n{s}\n\nLua: {s}", .{
                 file_path,
                 try self.lua.toString(-1)
             });
@@ -145,7 +146,7 @@ pub const LuaManager = struct {
                     self.lua.pushNumber(@floatCast(item.Float));
                 },
                 else => {
-                    Engine.IO.print_err("LM[ERROR]: Unsupported argumen type", .{});
+                    Engine.Logger.log_error(MODULE_STRING, "Unsupported argumen type", .{});
                     return LMError.UnsoppertedType;
                 }
             }
@@ -170,7 +171,7 @@ pub const LuaManager = struct {
         argc += try self.push_args(args);
         if (f_type == .function) {
             self.lua.protectedCall(argc, @intCast(return_expect), 0) catch {
-                Engine.IO.print_err("LM[ERROR]: Failed to call Lua function '{s}'\nLua: {s}", .{
+                Engine.Logger.log_error(MODULE_STRING, "Failed to call Lua function \"{s}\"\nLua: {s}", .{
                     func_name,
                     self.lua.toString(-1) catch ret: {
                         break :ret "";
@@ -179,7 +180,7 @@ pub const LuaManager = struct {
                 return LMError.LuaRuntime;
             };
         } else {
-            Engine.IO.print_err("GS[ERROR]: {s} is not a function", .{func_name});
+            Engine.Logger.log_error(MODULE_STRING, "\"{s}\" is not a function", .{func_name});
             return LMError.IncorrectType;
         }
     }
@@ -198,16 +199,17 @@ pub const LuaManager = struct {
     /// Push modules table to the stack
     /// Panic if modules table is not in a global scope
     pub fn get_modules_table(self: *Self) void {
-        const o_type = self.lua.getGlobal(MODULES_TABLE_NAME) catch {
-            Engine.IO.print_err("LM[ERROR]: Failed to find __modules__ table\nLua: {s}", .{
+        const o_type = self.lua.getGlobal(MODULES_TABLE_NAME) catch ty: {
+            Engine.Logger.log_error(MODULE_STRING, "Failed to find __modules__ table\nLua: {s}", .{
                 self.lua.toString(-1) catch ret: {
                     break :ret "";
                 }
             });
-            std.debug.panic("LM[PANIC]: Modules table was not found", .{});
+            Engine.Logger.panic(MODULE_STRING, "Modules table was not found", .{});
+            break :ty Engine.ziglua.LuaType.nil;
         };
         if (o_type != .table) {
-            std.debug.panic("LM[PANIC]: Modules table was not found", .{});
+            Engine.Logger.panic(MODULE_STRING, "Modules table was not found", .{});
         }
     }
 };

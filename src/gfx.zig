@@ -19,7 +19,10 @@ camera_offset: Engine.sdl.Point,
 ui_draw_mode: bool,
 
 pub fn init(window: Engine.sdl.Window) !Self {
-    const renderer = try Engine.sdl.createRenderer(window, null, .{ .accelerated = true });
+    const renderer = try Engine.sdl.createRenderer(
+        window, null, 
+        .{ .accelerated = true }
+    );
 
     const screen = try Engine.sdl.createTexture(
         renderer, 
@@ -94,7 +97,7 @@ pub fn load_bmp(self: *Self, file_path: [:0]const u8) ?Engine.sdl.Texture {
         return null;
     }
     texture = Engine.sdl.createTextureFromSurface(self.renderer, s_res.?) catch null;
-    Engine.Logger.log_error(
+    Engine.Logger.log_info(
         MODULE_STRING, 
         "Texture {s} was loaded", 
         .{file_path}

@@ -5,7 +5,12 @@ const Engine = @import("engine.zig");
 var game_state: ?*Engine.GameState = null;
 
 
-fn push_function_to_table(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
+fn push_global_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn (*Engine.ziglua.Lua) i32) void {
+    lua.pushFunction(Engine.ziglua.wrap(func));
+    lua.setGlobal(name);
+}
+
+fn push_function_to_table(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn (*Engine.ziglua.Lua) i32) void {
     lua.pushFunction(Engine.ziglua.wrap(func));
     lua.setField(-2, name);
 }
@@ -42,10 +47,10 @@ fn table_to_rect(lua: *Engine.ziglua.Lua, index: i32) ?Engine.sdl.Rectangle {
     };
     lua.pop(1);
 
-    return Engine.sdl.Rectangle {
-        .x      = @intCast(x),
-        .y      = @intCast(y),
-        .width  = @intCast(w),
+    return Engine.sdl.Rectangle{
+        .x = @intCast(x),
+        .y = @intCast(y),
+        .width = @intCast(w),
         .height = @intCast(h),
     };
 }
@@ -68,9 +73,9 @@ fn table_to_point(lua: *Engine.ziglua.Lua, index: i32) ?Engine.sdl.Point {
     };
     lua.pop(1);
 
-    return Engine.sdl.Point {
-        .x      = @intCast(x),
-        .y      = @intCast(y),
+    return Engine.sdl.Point{
+        .x = @intCast(x),
+        .y = @intCast(y),
     };
 }
 
@@ -82,7 +87,7 @@ fn table_to_sprite(lua: *Engine.ziglua.Lua, index: i32) ?Engine.Gfx.Sprite {
     _ = lua.getTable(-2);
     const texture_int_ptr = lua.toInteger(-1) catch {
         return null;
-    }; 
+    };
     lua.pop(1);
 
     _ = lua.pushString("segment");
@@ -100,21 +105,118 @@ fn table_to_sprite(lua: *Engine.ziglua.Lua, index: i32) ?Engine.Gfx.Sprite {
     lua.pop(1);
 
     const texture_usize_ptr: usize = @intCast(texture_int_ptr);
-    const texture = Engine.sdl.Texture {
+    const texture = Engine.sdl.Texture{
         .ptr = @ptrFromInt(texture_usize_ptr),
     };
-    return Engine.Gfx.Sprite {
+    return Engine.Gfx.Sprite{
         .texture = texture,
         .segment = segment,
         .dst_rect = dst_rect,
     };
 }
 
+const LuaAPI_Structs = struct {
+    pub fn init(lua: *Engine.ziglua.Lua) void {
+        
+        push_global_function(lua, "point", point);
+        push_global_function(lua, "rect", rect);
+        
+    }
 
+    fn point_move(lua: *Engine.ziglua.Lua) i32 {
+        var x: i64 = 0;
+        var y: i64 = 0;
+        const mx = lua.toInteger(2) catch 0;
+        const my = lua.toInteger(2) catch 0;
 
+        if (lua.getField(1, "x") == .number) {
+            x = @intCast(lua.toInteger(-1) catch 0);
+        }
+        if (lua.getField(1, "y") == .number) {
+            y = @intCast(lua.toInteger(-1)  catch 0);
+        }
+
+        x += mx;
+        y += my;
+
+        lua.pushInteger(@intCast(x));
+        lua.setField(1, "x");
+        lua.pushInteger(@intCast(y));
+        lua.setField(1, "y");
+
+        return 0;
+    }
+    
+    fn point_set_position(lua: *Engine.ziglua.Lua) i32 {
+        const x = lua.toInteger(2) catch 0;
+        const y = lua.toInteger(2) catch 0;
+
+        lua.pushInteger(x);
+        lua.setField(1, "x");
+        lua.pushInteger(y);
+        lua.setField(1, "y");
+
+        return 0;
+    }
+
+    fn rect_set_size(lua: *Engine.ziglua.Lua) i32 {
+        const w = lua.toInteger(2) catch 0;
+        const h = lua.toInteger(2) catch 0;
+
+        lua.pushInteger(w);
+        lua.setField(1, "w");
+        lua.pushInteger(h);
+        lua.setField(1, "h");
+        
+        return 0;
+    }
+
+    fn point(lua: *Engine.ziglua.Lua) i32 {
+        const x = lua.toInteger(1) catch 0;
+        const y = lua.toInteger(1) catch 0;
+
+        lua.newTable();
+        lua.pushInteger(x);
+        lua.setField(-2, "x");
+        lua.pushInteger(y);
+        lua.setField(-2, "y");
+        lua.pushFunction(Engine.ziglua.wrap(point_move));
+        lua.setField(-2, "move");
+        lua.pushFunction(Engine.ziglua.wrap(point_set_position));
+        lua.setField(-2, "set_position");
+        lua.pushValue(-1);
+
+        return 1;
+    }
+
+    fn rect(lua: *Engine.ziglua.Lua) i32 {
+        const x = lua.toInteger(1) catch 0;
+        const y = lua.toInteger(1) catch 0;
+        const w = lua.toInteger(1) catch 0;
+        const h = lua.toInteger(1) catch 0;
+
+        lua.newTable();
+        lua.pushInteger(x);
+        lua.setField(-2, "x");
+        lua.pushInteger(y);
+        lua.setField(-2, "y");
+        lua.pushInteger(w);
+        lua.setField(-2, "w");
+        lua.pushInteger(h);
+        lua.setField(-2, "h");
+        lua.pushFunction(Engine.ziglua.wrap(point_move));
+        lua.setField(-2, "move");
+        lua.pushFunction(Engine.ziglua.wrap(point_set_position));
+        lua.setField(-2, "set_position");
+        lua.pushFunction(Engine.ziglua.wrap(rect_set_size));
+        lua.setField(-2, "set_size");
+        lua.pushValue(-1);
+
+        return 1;
+    }
+};
 
 const LuaAPI_Input = struct {
-
     pub fn init(lua: *Engine.ziglua.Lua) void {
         lua.newTable();
         push_function_to_table(lua, "is_key_just_released", is_key_just_released);
@@ -160,9 +262,7 @@ const LuaAPI_Input = struct {
     }
 };
 
-
 pub const LuaAPI_Gfx = struct {
-
     pub fn init(lua: *Engine.ziglua.Lua) void {
         lua.newTable();
 
@@ -181,7 +281,6 @@ pub const LuaAPI_Gfx = struct {
         if (game_state) |gs| {
             const sprite = table_to_sprite(lua, 1);
             if (sprite) |spr| {
-                
                 gs.gfx.draw_sprite(&spr) catch {
                     res = false;
                 };
@@ -236,12 +335,9 @@ pub const LuaAPI_Gfx = struct {
         lua.pushInteger(res);
         return 1;
     }
-
 };
 
-
 pub const LuaAPI_AssetsManager = struct {
-
     pub fn init(lua: *Engine.ziglua.Lua) void {
         lua.newTable();
 
@@ -255,24 +351,16 @@ pub const LuaAPI_AssetsManager = struct {
         var res = false;
         if (game_state) |gs| ret: {
             const file_str = lua.toBytes(1) catch {
-                break :ret ;
+                break :ret;
             };
             const id_str = lua.toBytes(2) catch {
-                break :ret ;
+                break :ret;
             };
-            const id_key = Engine.Utils.make_str_heap_copy(
-                Engine.allocator, 
-                id_str
-            ) catch {
-                break :ret ;
+            const id_key = Engine.Utils.make_str_heap_copy(Engine.allocator, id_str) catch {
+                break :ret;
             };
-            gs.assets_manager.load_texture(
-                Engine.allocator, 
-                &gs.gfx, 
-                file_str, 
-                id_key
-            ) catch {
-                break :ret ;
+            gs.assets_manager.load_texture(Engine.allocator, &gs.gfx, file_str, id_key) catch {
+                break :ret;
             };
             res = true;
         }
@@ -296,12 +384,9 @@ pub const LuaAPI_AssetsManager = struct {
         lua.pushInteger(@intCast(res));
         return 1;
     }
-    
 };
 
-
 pub const LuaAPI_Engine = struct {
-
     pub fn init(lua: *Engine.ziglua.Lua) void {
         lua.newTable();
 
@@ -328,9 +413,7 @@ pub const LuaAPI_Engine = struct {
         lua.pushInteger(@intCast(res));
         return 1;
     }
-
 };
-
 
 pub const LuaAPI = struct {
     const Self = @This();
@@ -341,12 +424,6 @@ pub const LuaAPI = struct {
         LuaAPI_Input.init(lua);
         LuaAPI_Gfx.init(lua);
         LuaAPI_AssetsManager.init(lua);
+        LuaAPI_Structs.init(lua);
     }
-
-    fn push_function(lua: *Engine.ziglua.Lua, name: [:0]const u8, func: fn(*Engine.ziglua.Lua) i32) void {
-        lua.pushFunction(Engine.ziglua.wrap(func));
-        lua.setGlobal(name);
-    }
-
-
 };

@@ -82,6 +82,7 @@ pub fn run(self: *Self) !void {
 
         try self.gfx.end_frame();
         try self.gfx.present();
+        break;
     }
     Engine.Logger.log_info(MODULE_STRING, "Finishing game loop", .{});
 }
